@@ -131,68 +131,64 @@ export default function ProfileDetailsScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Progress */}
+        {/* =========================
+            PROGRESS
+        ========================== */}
 
-        <View style={styles.progressContainer}>
-          <View
-            style={[
-              styles.progressActive,
-              {
-                backgroundColor: theme.primary,
-              },
-            ]}
-          />
-
-          <View
-            style={[
-              styles.progressActive,
-              {
-                backgroundColor: theme.primary,
-              },
-            ]}
-          />
-
-          <View
-            style={[
-              styles.progressActive,
-              {
-                backgroundColor: theme.primary,
-              },
-            ]}
-          />
-
-          <View
-            style={[
-              styles.progressActive,
-              {
-                backgroundColor: theme.primary,
-              },
-            ]}
-          />
-
-          <View
-            style={[
-              styles.progressActive,
-              {
-                backgroundColor: theme.primary,
-              },
-            ]}
-          />
+        <View style={styles.progressRow}>
+          {Array.from({ length: 5 }).map(
+            (_, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.progressBar,
+                  {
+                    backgroundColor:
+                      theme.primary,
+                  },
+                ]}
+              />
+            )
+          )}
         </View>
 
-        {/* Header */}
+        {/* =========================
+            HEADER
+        ========================== */}
 
         <View style={styles.header}>
-          <Text
+          <View
             style={[
-              styles.step,
+              styles.eyebrowPill,
               {
-                color: theme.primary,
+                backgroundColor: isDark
+                  ? "#251C38"
+                  : "#F1ECFF",
               },
             ]}
           >
-            MAKE IT YOU
-          </Text>
+            <Text
+              style={[
+                styles.eyebrowDot,
+                {
+                  color: theme.primary,
+                },
+              ]}
+            >
+              ✦
+            </Text>
+
+            <Text
+              style={[
+                styles.eyebrow,
+                {
+                  color: theme.primary,
+                },
+              ]}
+            >
+              MAKE IT YOU
+            </Text>
+          </View>
 
           <Text
             style={[
@@ -202,7 +198,14 @@ export default function ProfileDetailsScreen() {
               },
             ]}
           >
-            Tell them{"\n"}your vibe.
+            Tell them{"\n"}
+            <Text
+              style={{
+                color: theme.primary,
+              }}
+            >
+              your vibe.
+            </Text>
           </Text>
 
           <Text
@@ -213,50 +216,75 @@ export default function ProfileDetailsScreen() {
               },
             ]}
           >
-            A little about you helps people find
-            something real to connect with.
+            The little things make your profile
+            feel like you. Keep it real, keep it
+            yours.
           </Text>
         </View>
 
-        {/* Bio */}
+        {/* =========================
+            BIO
+        ========================== */}
 
         <View style={styles.section}>
-          <View style={styles.labelRow}>
-            <Text
-              style={[
-                styles.label,
-                {
-                  color: theme.text,
-                },
-              ]}
-            >
-              Your bio
-            </Text>
+          <View style={styles.sectionHeader}>
+            <View>
+              <Text
+                style={[
+                  styles.label,
+                  {
+                    color: theme.text,
+                  },
+                ]}
+              >
+                Your bio
+              </Text>
 
-            <Text
+              <Text
+                style={[
+                  styles.smallHint,
+                  {
+                    color: theme.textMuted,
+                  },
+                ]}
+              >
+                Your first impression ✨
+              </Text>
+            </View>
+
+            <View
               style={[
-                styles.counter,
+                styles.counterPill,
                 {
-                  color: theme.textMuted,
+                  backgroundColor:
+                    bio.length >= 10
+                      ? isDark
+                        ? "#251C38"
+                        : "#F1ECFF"
+                      : theme.surface,
                 },
               ]}
             >
-              {bio.length}/180
-            </Text>
+              <Text
+                style={[
+                  styles.counter,
+                  {
+                    color:
+                      bio.length >= 10
+                        ? theme.primary
+                        : theme.textMuted,
+                  },
+                ]}
+              >
+                {bio.length}/180
+              </Text>
+            </View>
           </View>
 
-          <TextInput
-            value={bio}
-            onChangeText={setLocalBio}
-            placeholder="Coffee, sunsets & spontaneous plans ✨"
-            placeholderTextColor={theme.textMuted}
-            multiline
-            maxLength={180}
-            textAlignVertical="top"
+          <View
             style={[
-              styles.textArea,
+              styles.inputCard,
               {
-                color: theme.text,
                 backgroundColor: theme.surface,
                 borderColor:
                   bio.length > 0
@@ -264,7 +292,23 @@ export default function ProfileDetailsScreen() {
                     : theme.border,
               },
             ]}
-          />
+          >
+            <TextInput
+              value={bio}
+              onChangeText={setLocalBio}
+              placeholder="Coffee, sunsets & spontaneous plans ✨"
+              placeholderTextColor={theme.textMuted}
+              multiline
+              maxLength={180}
+              textAlignVertical="top"
+              style={[
+                styles.bioInput,
+                {
+                  color: theme.text,
+                },
+              ]}
+            />
+          </View>
 
           <Text
             style={[
@@ -274,25 +318,40 @@ export default function ProfileDetailsScreen() {
               },
             ]}
           >
-            Keep it natural. Tell people what makes
-            you, you.
+            Say something that gives people a reason
+            to smile or start a conversation.
           </Text>
         </View>
 
-        {/* Description */}
+        {/* =========================
+            ABOUT YOU
+        ========================== */}
 
         <View style={styles.section}>
-          <View style={styles.labelRow}>
-            <Text
-              style={[
-                styles.label,
-                {
-                  color: theme.text,
-                },
-              ]}
-            >
-              More about you
-            </Text>
+          <View style={styles.sectionHeader}>
+            <View>
+              <Text
+                style={[
+                  styles.label,
+                  {
+                    color: theme.text,
+                  },
+                ]}
+              >
+                More about you
+              </Text>
+
+              <Text
+                style={[
+                  styles.smallHint,
+                  {
+                    color: theme.textMuted,
+                  },
+                ]}
+              >
+                Show a little more personality
+              </Text>
+            </View>
 
             <Text
               style={[
@@ -306,18 +365,10 @@ export default function ProfileDetailsScreen() {
             </Text>
           </View>
 
-          <TextInput
-            value={description}
-            onChangeText={setLocalDescription}
-            placeholder="Tell people a little more about your personality, lifestyle or what you enjoy..."
-            placeholderTextColor={theme.textMuted}
-            multiline
-            maxLength={500}
-            textAlignVertical="top"
+          <View
             style={[
-              styles.descriptionArea,
+              styles.inputCard,
               {
-                color: theme.text,
                 backgroundColor: theme.surface,
                 borderColor:
                   description.length > 0
@@ -325,24 +376,81 @@ export default function ProfileDetailsScreen() {
                     : theme.border,
               },
             ]}
-          />
+          >
+            <TextInput
+              value={description}
+              onChangeText={setLocalDescription}
+              placeholder="Tell people about your personality, lifestyle, passions or what you enjoy..."
+              placeholderTextColor={
+                theme.textMuted
+              }
+              multiline
+              maxLength={500}
+              textAlignVertical="top"
+              style={[
+                styles.descriptionInput,
+                {
+                  color: theme.text,
+                },
+              ]}
+            />
+          </View>
         </View>
 
-        {/* Dating Intention */}
+        {/* =========================
+            DATING INTENTION
+        ========================== */}
 
         <View style={styles.section}>
-          <Text
-            style={[
-              styles.label,
-              {
-                color: theme.text,
-              },
-            ]}
-          >
-            What are you looking for?
-          </Text>
+          <View style={styles.sectionTitleRow}>
+            <View>
+              <Text
+                style={[
+                  styles.label,
+                  {
+                    color: theme.text,
+                  },
+                ]}
+              >
+                What are you looking for?
+              </Text>
 
-          <View style={styles.options}>
+              <Text
+                style={[
+                  styles.smallHint,
+                  {
+                    color: theme.textMuted,
+                  },
+                ]}
+              >
+                Be clear. Find your kind of people.
+              </Text>
+            </View>
+
+            <View
+              style={[
+                styles.requiredBadge,
+                {
+                  backgroundColor: isDark
+                    ? "#30202A"
+                    : "#FFF0F3",
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.requiredText,
+                  {
+                    color: theme.secondary,
+                  },
+                ]}
+              >
+                Required
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.intentionsGrid}>
             {INTENTIONS.map((item) => {
               const selected =
                 datingIntention === item;
@@ -354,7 +462,7 @@ export default function ProfileDetailsScreen() {
                     setLocalDatingIntention(item)
                   }
                   style={({ pressed }) => [
-                    styles.option,
+                    styles.intentionCard,
                     {
                       backgroundColor: selected
                         ? theme.primary
@@ -364,13 +472,19 @@ export default function ProfileDetailsScreen() {
                         ? theme.primary
                         : theme.border,
 
-                      opacity: pressed ? 0.9 : 1,
+                      transform: [
+                        {
+                          scale: pressed
+                            ? 0.98
+                            : 1,
+                        },
+                      ],
                     },
                   ]}
                 >
                   <Text
                     style={[
-                      styles.optionText,
+                      styles.intentionText,
                       {
                         color: selected
                           ? "#FFFFFF"
@@ -381,42 +495,87 @@ export default function ProfileDetailsScreen() {
                     {item}
                   </Text>
 
-                  {selected && (
-                    <Text style={styles.optionCheck}>
-                      ✓
-                    </Text>
-                  )}
+                  <View
+                    style={[
+                      styles.checkCircle,
+                      {
+                        backgroundColor:
+                          selected
+                            ? "rgba(255,255,255,0.18)"
+                            : "transparent",
+
+                        borderColor: selected
+                          ? "rgba(255,255,255,0.7)"
+                          : theme.border,
+                      },
+                    ]}
+                  >
+                    {selected && (
+                      <Text
+                        style={
+                          styles.checkText
+                        }
+                      >
+                        ✓
+                      </Text>
+                    )}
+                  </View>
                 </Pressable>
               );
             })}
           </View>
         </View>
 
-        {/* Prompt */}
+        {/* =========================
+            PROMPT
+        ========================== */}
 
         <View style={styles.section}>
-          <View style={styles.labelRow}>
-            <Text
-              style={[
-                styles.label,
-                {
-                  color: theme.text,
-                },
-              ]}
-            >
-              Add a prompt
-            </Text>
+          <View style={styles.sectionTitleRow}>
+            <View>
+              <Text
+                style={[
+                  styles.label,
+                  {
+                    color: theme.text,
+                  },
+                ]}
+              >
+                Add a prompt
+              </Text>
 
-            <Text
+              <Text
+                style={[
+                  styles.smallHint,
+                  {
+                    color: theme.textMuted,
+                  },
+                ]}
+              >
+                Give them an easy conversation starter
+              </Text>
+            </View>
+
+            <View
               style={[
-                styles.optional,
+                styles.optionalBadge,
                 {
-                  color: theme.textMuted,
+                  backgroundColor: theme.surface,
+                  borderColor: theme.border,
                 },
               ]}
             >
-              Optional
-            </Text>
+              <Text
+                style={[
+                  styles.optionalText,
+                  {
+                    color: theme.textMuted,
+                  },
+                ]}
+              >
+                Optional
+              </Text>
+            </View>
           </View>
 
           <ScrollView
@@ -436,21 +595,42 @@ export default function ProfileDetailsScreen() {
                   onPress={() =>
                     setLocalPromptQuestion(prompt)
                   }
-                  style={[
+                  style={({ pressed }) => [
                     styles.promptChip,
                     {
                       backgroundColor: selected
                         ? isDark
-                          ? "#30264A"
-                          : "#F3EEFF"
+                          ? "#2D2148"
+                          : "#F1ECFF"
                         : theme.surface,
 
                       borderColor: selected
                         ? theme.primary
                         : theme.border,
+
+                      transform: [
+                        {
+                          scale: pressed
+                            ? 0.97
+                            : 1,
+                        },
+                      ],
                     },
                   ]}
                 >
+                  {selected && (
+                    <Text
+                      style={[
+                        styles.promptChipIcon,
+                        {
+                          color: theme.primary,
+                        },
+                      ]}
+                    >
+                      ✦
+                    </Text>
+                  )}
+
                   <Text
                     style={[
                       styles.promptChipText,
@@ -469,22 +649,72 @@ export default function ProfileDetailsScreen() {
           </ScrollView>
 
           {promptQuestion ? (
-            <View style={styles.promptAnswerContainer}>
-              <Text
-                style={[
-                  styles.selectedPrompt,
-                  {
-                    color: theme.primary,
-                  },
-                ]}
+            <View
+              style={[
+                styles.promptAnswerCard,
+                {
+                  backgroundColor: isDark
+                    ? "#19161F"
+                    : "#FFFFFF",
+                  borderColor: theme.primary,
+                },
+              ]}
+            >
+              <View
+                style={styles.promptAnswerHeader}
               >
-                {promptQuestion}
-              </Text>
+                <View
+                  style={[
+                    styles.promptSpark,
+                    {
+                      backgroundColor:
+                        isDark
+                          ? "#30264A"
+                          : "#F1ECFF",
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.promptSparkText,
+                      {
+                        color: theme.primary,
+                      },
+                    ]}
+                  >
+                    ✦
+                  </Text>
+                </View>
+
+                <View style={styles.promptHeaderCopy}>
+                  <Text
+                    style={[
+                      styles.selectedPrompt,
+                      {
+                        color: theme.primary,
+                      },
+                    ]}
+                  >
+                    {promptQuestion}
+                  </Text>
+
+                  <Text
+                    style={[
+                      styles.promptHeaderHint,
+                      {
+                        color: theme.textMuted,
+                      },
+                    ]}
+                  >
+                    Your answer
+                  </Text>
+                </View>
+              </View>
 
               <TextInput
                 value={promptAnswer}
                 onChangeText={setLocalPromptAnswer}
-                placeholder="Write your answer..."
+                placeholder="Write something that feels like you..."
                 placeholderTextColor={
                   theme.textMuted
                 }
@@ -501,6 +731,17 @@ export default function ProfileDetailsScreen() {
                   },
                 ]}
               />
+
+              <Text
+                style={[
+                  styles.promptCounter,
+                  {
+                    color: theme.textMuted,
+                  },
+                ]}
+              >
+                {promptAnswer.length}/150
+              </Text>
             </View>
           ) : (
             <View
@@ -514,37 +755,65 @@ export default function ProfileDetailsScreen() {
                 },
               ]}
             >
-              <Text
+              <View
                 style={[
-                  styles.promptEmptyIcon,
+                  styles.emptySpark,
                   {
-                    color: theme.primary,
+                    backgroundColor: isDark
+                      ? "#30264A"
+                      : "#F1ECFF",
                   },
                 ]}
               >
-                ✦
-              </Text>
+                <Text
+                  style={[
+                    styles.promptEmptyIcon,
+                    {
+                      color: theme.primary,
+                    },
+                  ]}
+                >
+                  ✦
+                </Text>
+              </View>
 
-              <Text
-                style={[
-                  styles.promptEmptyText,
-                  {
-                    color: theme.textMuted,
-                  },
-                ]}
+              <View
+                style={styles.emptyCopy}
               >
-                Pick a prompt to give people an
-                easy conversation starter.
-              </Text>
+                <Text
+                  style={[
+                    styles.promptEmptyTitle,
+                    {
+                      color: theme.text,
+                    },
+                  ]}
+                >
+                  Make it easier to say hey
+                </Text>
+
+                <Text
+                  style={[
+                    styles.promptEmptyText,
+                    {
+                      color: theme.textMuted,
+                    },
+                  ]}
+                >
+                  Pick a prompt and give someone
+                  an easy reason to message you.
+                </Text>
+              </View>
             </View>
           )}
         </View>
 
-        {/* Info */}
+        {/* =========================
+            PROFILE TIP
+        ========================== */}
 
         <View
           style={[
-            styles.infoBox,
+            styles.tipCard,
             {
               backgroundColor: isDark
                 ? "#19161F"
@@ -553,31 +822,57 @@ export default function ProfileDetailsScreen() {
             },
           ]}
         >
-          <Text
+          <View
             style={[
-              styles.infoIcon,
+              styles.tipIcon,
               {
-                color: theme.primary,
+                backgroundColor: isDark
+                  ? "#30264A"
+                  : "#F1ECFF",
               },
             ]}
           >
-            ✦
-          </Text>
+            <Text
+              style={[
+                styles.tipIconText,
+                {
+                  color: theme.primary,
+                },
+              ]}
+            >
+              ♥
+            </Text>
+          </View>
 
-          <Text
-            style={[
-              styles.infoText,
-              {
-                color: theme.textMuted,
-              },
-            ]}
-          >
-            You can edit all of these details later
-            from your profile.
-          </Text>
+          <View style={styles.tipCopy}>
+            <Text
+              style={[
+                styles.tipTitle,
+                {
+                  color: theme.text,
+                },
+              ]}
+            >
+              Your profile, your rules
+            </Text>
+
+            <Text
+              style={[
+                styles.tipText,
+                {
+                  color: theme.textMuted,
+                },
+              ]}
+            >
+              You can always edit these details
+              later from your profile.
+            </Text>
+          </View>
         </View>
 
-        {/* Continue */}
+        {/* =========================
+            CONTINUE
+        ========================== */}
 
         <Pressable
           disabled={!canContinue}
@@ -589,12 +884,16 @@ export default function ProfileDetailsScreen() {
                 ? theme.primary
                 : isDark
                 ? "#302A3A"
-                : "#E6E1EA",
+                : "#E8E3EA",
 
-              opacity:
-                pressed && canContinue
-                  ? 0.9
-                  : 1,
+              transform: [
+                {
+                  scale:
+                    pressed && canContinue
+                      ? 0.985
+                      : 1,
+                },
+              ],
             },
           ]}
         >
@@ -611,19 +910,41 @@ export default function ProfileDetailsScreen() {
             Continue
           </Text>
 
-          <Text
+          <View
             style={[
-              styles.buttonArrow,
+              styles.buttonArrowCircle,
               {
-                color: canContinue
-                  ? "#FFFFFF"
-                  : theme.textMuted,
+                backgroundColor: canContinue
+                  ? "rgba(255,255,255,0.16)"
+                  : "transparent",
               },
             ]}
           >
-            →
-          </Text>
+            <Text
+              style={[
+                styles.buttonArrow,
+                {
+                  color: canContinue
+                    ? "#FFFFFF"
+                    : theme.textMuted,
+                },
+              ]}
+            >
+              →
+            </Text>
+          </View>
         </Pressable>
+
+        <Text
+          style={[
+            styles.bottomHint,
+            {
+              color: theme.textMuted,
+            },
+          ]}
+        >
+          Almost there — one more step after this ✨
+        </Text>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -636,231 +957,425 @@ const styles = StyleSheet.create({
 
   content: {
     flexGrow: 1,
-    paddingHorizontal: spacing.xxxl,
-    paddingTop: 55,
-    paddingBottom: 40,
+    paddingHorizontal: 20,
+    paddingTop: 22,
+    paddingBottom: 45,
   },
 
-  /* Progress */
+  /* =========================
+     PROGRESS
+  ========================== */
 
-  progressContainer: {
+  progressRow: {
     flexDirection: "row",
-    gap: 7,
-    marginBottom: 35,
+    gap: 6,
+    marginBottom: 30,
   },
 
-  progressActive: {
-    height: 5,
+  progressBar: {
     flex: 1,
-    borderRadius: radius.pill,
+    height: 4,
+    borderRadius: 20,
   },
 
-  /* Header */
+  /* =========================
+     HEADER
+  ========================== */
 
   header: {
-    marginBottom: 28,
+    marginBottom: 30,
   },
 
-  step: {
-    ...typography.captionMedium,
+  eyebrowPill: {
+    alignSelf: "flex-start",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 11,
+    paddingVertical: 7,
+    borderRadius: 20,
     marginBottom: 14,
   },
 
+  eyebrowDot: {
+    fontSize: 12,
+    marginRight: 6,
+  },
+
+  eyebrow: {
+    fontSize: 10,
+    fontWeight: "900",
+    letterSpacing: 1.3,
+  },
+
   title: {
-    fontSize: 36,
-    lineHeight: 42,
-    fontWeight: "800",
-    letterSpacing: -1,
+    fontSize: 38,
+    lineHeight: 43,
+    fontWeight: "900",
+    letterSpacing: -1.3,
   },
 
   subtitle: {
-    marginTop: spacing.md,
-    ...typography.body,
+    marginTop: 13,
+    fontSize: 15,
     lineHeight: 22,
+    maxWidth: 350,
   },
 
-  /* Sections */
+  /* =========================
+     SECTION
+  ========================== */
 
   section: {
-    marginBottom: 26,
+    marginBottom: 27,
   },
 
-  labelRow: {
+  sectionHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 10,
+    marginBottom: 11,
+  },
+
+  sectionTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
   },
 
   label: {
-    ...typography.bodyMedium,
+    fontSize: 16,
+    fontWeight: "800",
+    letterSpacing: -0.2,
+  },
+
+  smallHint: {
+    fontSize: 11,
+    lineHeight: 16,
+    marginTop: 3,
+  },
+
+  counterPill: {
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderRadius: 12,
   },
 
   counter: {
-    ...typography.caption,
+    fontSize: 11,
+    fontWeight: "700",
   },
 
-  optional: {
-    ...typography.caption,
+  requiredBadge: {
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderRadius: 12,
+    marginLeft: 10,
+  },
+
+  requiredText: {
+    fontSize: 9,
+    fontWeight: "800",
+  },
+
+  optionalBadge: {
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginLeft: 10,
+  },
+
+  optionalText: {
+    fontSize: 9,
+    fontWeight: "700",
+  },
+
+  /* =========================
+     INPUTS
+  ========================== */
+
+  inputCard: {
+    borderRadius: 20,
+    borderWidth: 1,
+    overflow: "hidden",
+  },
+
+  bioInput: {
+    minHeight: 125,
+    paddingHorizontal: 16,
+    paddingTop: 15,
+    paddingBottom: 15,
+    fontSize: 15,
+    lineHeight: 23,
+  },
+
+  descriptionInput: {
+    minHeight: 135,
+    paddingHorizontal: 16,
+    paddingTop: 15,
+    paddingBottom: 15,
+    fontSize: 15,
+    lineHeight: 23,
   },
 
   helper: {
-    marginTop: 7,
-    ...typography.caption,
-    lineHeight: 18,
+    marginTop: 8,
+    fontSize: 11,
+    lineHeight: 17,
+    paddingHorizontal: 2,
   },
 
-  /* Bio */
+  /* =========================
+     INTENTIONS
+  ========================== */
 
-  textArea: {
-    minHeight: 115,
-    borderWidth: 1,
-    borderRadius: radius.lg,
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.md,
-    ...typography.body,
-  },
-
-  descriptionArea: {
-    minHeight: 120,
-    borderWidth: 1,
-    borderRadius: radius.lg,
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.md,
-    ...typography.body,
-  },
-
-  /* Dating intention */
-
-  options: {
+  intentionsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 10,
-    marginTop: 10,
   },
 
-  option: {
-    minHeight: 52,
-    borderRadius: radius.lg,
+  intentionCard: {
+    width: "48.5%",
+    minHeight: 62,
+    borderRadius: 18,
     borderWidth: 1,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: 13,
+    paddingVertical: 11,
     flexDirection: "row",
     alignItems: "center",
   },
 
-  optionText: {
+  intentionText: {
     flex: 1,
-    ...typography.bodyMedium,
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: "700",
   },
 
-  optionCheck: {
+  checkCircle: {
+    width: 21,
+    height: 21,
+    borderRadius: 11,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: 6,
+  },
+
+  checkText: {
     color: "#FFFFFF",
-    fontSize: 17,
-    fontWeight: "800",
+    fontSize: 12,
+    fontWeight: "900",
   },
 
-  /* Prompt */
+  /* =========================
+     PROMPTS
+  ========================== */
 
   promptOptions: {
     gap: 8,
     paddingVertical: 2,
+    paddingRight: 20,
   },
 
   promptChip: {
     minHeight: 40,
-    borderRadius: radius.pill,
+    borderRadius: 20,
     borderWidth: 1,
-    paddingHorizontal: 14,
+    paddingHorizontal: 13,
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
   },
 
-  promptChipText: {
-    ...typography.captionMedium,
+  promptChipIcon: {
+    fontSize: 11,
+    marginRight: 5,
   },
 
-  promptAnswerContainer: {
+  promptChipText: {
+    fontSize: 11,
+    fontWeight: "700",
+  },
+
+  promptAnswerCard: {
     marginTop: 12,
+    borderRadius: 21,
+    borderWidth: 1,
+    padding: 14,
+  },
+
+  promptAnswerHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+
+  promptSpark: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  promptSparkText: {
+    fontSize: 17,
+  },
+
+  promptHeaderCopy: {
+    marginLeft: 10,
+    flex: 1,
   },
 
   selectedPrompt: {
-    ...typography.captionMedium,
-    marginBottom: 8,
+    fontSize: 13,
+    fontWeight: "800",
+  },
+
+  promptHeaderHint: {
+    fontSize: 10,
+    marginTop: 2,
   },
 
   promptInput: {
-    minHeight: 90,
+    minHeight: 92,
+    borderRadius: 15,
     borderWidth: 1,
-    borderRadius: radius.lg,
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.md,
-    ...typography.body,
+    paddingHorizontal: 13,
+    paddingTop: 12,
+    paddingBottom: 12,
+    fontSize: 14,
+    lineHeight: 21,
+  },
+
+  promptCounter: {
+    fontSize: 10,
+    textAlign: "right",
+    marginTop: 6,
   },
 
   promptEmpty: {
     marginTop: 12,
-    minHeight: 58,
+    minHeight: 83,
+    borderRadius: 21,
     borderWidth: 1,
-    borderRadius: radius.lg,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingHorizontal: 13,
+    paddingVertical: 13,
     flexDirection: "row",
     alignItems: "center",
   },
 
-  promptEmptyIcon: {
-    fontSize: 18,
-    marginRight: 10,
-  },
-
-  promptEmptyText: {
-    flex: 1,
-    ...typography.caption,
-    lineHeight: 18,
-  },
-
-  /* Info */
-
-  infoBox: {
-    minHeight: 54,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-
-  infoIcon: {
-    fontSize: 18,
-    marginRight: 10,
-  },
-
-  infoText: {
-    flex: 1,
-    ...typography.caption,
-    lineHeight: 18,
-  },
-
-  /* Button */
-
-  button: {
-    height: 56,
-    borderRadius: 17,
-    flexDirection: "row",
+  emptySpark: {
+    width: 43,
+    height: 43,
+    borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
   },
 
+  promptEmptyIcon: {
+    fontSize: 19,
+  },
+
+  emptyCopy: {
+    flex: 1,
+    marginLeft: 11,
+  },
+
+  promptEmptyTitle: {
+    fontSize: 13,
+    fontWeight: "800",
+    marginBottom: 3,
+  },
+
+  promptEmptyText: {
+    fontSize: 11,
+    lineHeight: 17,
+  },
+
+  /* =========================
+     TIP
+  ========================== */
+
+  tipCard: {
+    minHeight: 74,
+    borderRadius: 21,
+    borderWidth: 1,
+    paddingHorizontal: 13,
+    paddingVertical: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 19,
+  },
+
+  tipIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  tipIconText: {
+    fontSize: 17,
+  },
+
+  tipCopy: {
+    flex: 1,
+    marginLeft: 11,
+  },
+
+  tipTitle: {
+    fontSize: 12,
+    fontWeight: "800",
+    marginBottom: 3,
+  },
+
+  tipText: {
+    fontSize: 10,
+    lineHeight: 16,
+  },
+
+  /* =========================
+     CONTINUE
+  ========================== */
+
+  button: {
+    height: 58,
+    borderRadius: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 18,
+  },
+
   buttonText: {
-    ...typography.button,
+    fontSize: 16,
+    fontWeight: "900",
+    letterSpacing: -0.2,
+  },
+
+  buttonArrowCircle: {
+    width: 31,
+    height: 31,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: 10,
   },
 
   buttonArrow: {
     fontSize: 20,
-    fontWeight: "600",
-    marginLeft: 10,
+    fontWeight: "700",
+    marginTop: -1,
+  },
+
+  bottomHint: {
+    textAlign: "center",
+    fontSize: 10,
+    marginTop: 11,
   },
 });
