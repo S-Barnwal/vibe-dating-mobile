@@ -146,8 +146,8 @@ export default function ProfileDetailScreen() {
     photos[0] ||
     null;
 
- const handleBack = () => {
-  router.replace("/discover");
+const handleBack = () => {
+  router.back();
 };
 
   const handlePreviousPhoto = () => {
