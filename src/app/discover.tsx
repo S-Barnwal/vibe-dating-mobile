@@ -11,6 +11,10 @@ import {
   Text,
   View,
 } from "react-native";
+import {
+  getMostCompatibleProfiles,
+  type CompatibleProfile,
+} from "../services/compatibility.service";
 import { router, useFocusEffect } from "expo-router";
 
 import { useTheme } from "../hooks/use-theme";
@@ -19,7 +23,11 @@ import { typography } from "../constants/typography";
 
 import {
   getDiscoverProfiles,
+  getBecauseYouLikeProfiles,
+  getNewHereProfiles,
   PublicProfile,
+  type BecauseYouLikeProfile,
+  type NewHereProfile,
 } from "../services/profile.service";
 
 import { useLikesStore } from "../store/likesStore";
@@ -110,12 +118,168 @@ export default function DiscoverScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
 
+  const [compatibleProfiles, setCompatibleProfiles] = useState<
+    CompatibleProfile[]
+  >([]);
+
+  const [compatibleLoading, setCompatibleLoading] =
+    useState(true);
+
+    const [becauseYouLikeProfiles, setBecauseYouLikeProfiles] =
+  useState<BecauseYouLikeProfile[]>([]);
+
+const [becauseYouLikeInterest, setBecauseYouLikeInterest] =
+  useState<string | null>(null);
+
+const [becauseYouLikeLoading, setBecauseYouLikeLoading] =
+  useState(true);
+
+  const [newHereProfiles, setNewHereProfiles] =
+  useState<NewHereProfile[]>([]);
+
+const [newHereLoading, setNewHereLoading] =
+  useState(true);
+
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [actionMessage, setActionMessage] =
+  useState<{
+    title: string;
+    message: string;
+    type: "like" | "pass" | "superlike";
+  } | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
 
   const position = useRef(new Animated.ValueXY()).current;
 
   const addLike = useLikesStore((state) => state.addLike);
+
+
+  useEffect(() => {
+  let mounted = true;
+
+  const loadMostCompatible = async () => {
+    try {
+      setCompatibleLoading(true);
+
+      const response =
+        await getMostCompatibleProfiles();
+
+      if (!mounted) {
+        return;
+      }
+
+      setCompatibleProfiles(
+        response.data?.profiles || []
+      );
+    } catch (error) {
+      console.error(
+        "Most compatible error:",
+        error
+      );
+
+      if (mounted) {
+        setCompatibleProfiles([]);
+      }
+    } finally {
+      if (mounted) {
+        setCompatibleLoading(false);
+      }
+    }
+  };
+
+  loadMostCompatible();
+
+  return () => {
+    mounted = false;
+  };
+}, []);
+
+
+useEffect(() => {
+  let mounted = true;
+
+  const loadBecauseYouLike = async () => {
+    try {
+      setBecauseYouLikeLoading(true);
+
+      const response =
+        await getBecauseYouLikeProfiles();
+
+      if (!mounted) {
+        return;
+      }
+
+      setBecauseYouLikeInterest(
+        response.data?.interest || null
+      );
+
+      setBecauseYouLikeProfiles(
+        response.data?.profiles || []
+      );
+    } catch (error) {
+      console.error(
+        "Because you like error:",
+        error
+      );
+
+      if (mounted) {
+        setBecauseYouLikeInterest(null);
+        setBecauseYouLikeProfiles([]);
+      }
+    } finally {
+      if (mounted) {
+        setBecauseYouLikeLoading(false);
+      }
+    }
+  };
+
+  loadBecauseYouLike();
+
+  return () => {
+    mounted = false;
+  };
+}, []);
+
+
+useEffect(() => {
+  let mounted = true;
+
+  const loadNewHere = async () => {
+    try {
+      setNewHereLoading(true);
+
+      const response = await getNewHereProfiles();
+
+      if (!mounted) {
+        return;
+      }
+
+      setNewHereProfiles(
+        response.data?.profiles || []
+      );
+    } catch (error) {
+      console.error(
+        "New here error:",
+        error
+      );
+
+      if (mounted) {
+        setNewHereProfiles([]);
+      }
+    } finally {
+      if (mounted) {
+        setNewHereLoading(false);
+      }
+    }
+  };
+
+  loadNewHere();
+
+  return () => {
+    mounted = false;
+  };
+}, []);
+
 
   /*
    * =====================================================
@@ -194,21 +358,21 @@ export default function DiscoverScreen() {
       });
   }, [profiles]);
 
-  const newProfiles = useMemo(() => {
-    return [...profiles]
-      .sort((a, b) => {
-        const aTime = a.createdAt
-          ? new Date(a.createdAt).getTime()
-          : new Date(a.lastActiveAt).getTime();
+  // const newProfiles = useMemo(() => {
+  //   return [...profiles]
+  //     .sort((a, b) => {
+  //       const aTime = a.createdAt
+  //         ? new Date(a.createdAt).getTime()
+  //         : new Date(a.lastActiveAt).getTime();
 
-        const bTime = b.createdAt
-          ? new Date(b.createdAt).getTime()
-          : new Date(b.lastActiveAt).getTime();
+  //       const bTime = b.createdAt
+  //         ? new Date(b.createdAt).getTime()
+  //         : new Date(b.lastActiveAt).getTime();
 
-        return bTime - aTime;
-      })
-      .slice(0, 4);
-  }, [profiles]);
+  //       return bTime - aTime;
+  //     })
+  //     .slice(0, 4);
+  // }, [profiles]);
 
   const activeProfiles = useMemo(() => {
     return [...profiles]
@@ -304,14 +468,8 @@ export default function DiscoverScreen() {
   );
 
   const mostCompatible = useMemo(() => {
-    return profiles
-      .map((item) => ({
-        profile: item,
-        score: calculateCompatibility(item),
-      }))
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 4);
-  }, [profiles, calculateCompatibility]);
+  return compatibleProfiles.slice(0, 4);
+}, [compatibleProfiles]);
 
   /*
    * =====================================================
@@ -319,15 +477,20 @@ export default function DiscoverScreen() {
    * =====================================================
    */
 
-  const openProfile = (item: PublicProfile) => {
-    router.push({
-      pathname: "/profile-detail",
-      params: {
-        id: item.id,
-        name: item.name,
-      },
-    });
-  };
+  const openProfile = (
+  item: {
+    id: string;
+    name: string | null;
+  }
+) => {
+  router.push({
+    pathname: "/profile-detail",
+    params: {
+      id: item.id,
+      name: item.name ?? "",
+    },
+  });
+};
 
   /*
    * =====================================================
@@ -445,6 +608,30 @@ export default function DiscoverScreen() {
         await superlikeProfile(targetProfile.id);
       }
 
+      if (direction === "right") {
+        setActionMessage({
+          title: "A little heart sent 💜",
+          message: `You liked ${targetProfile.name}. Let's see where the vibe goes.`,
+          type: "like",
+        });
+      }
+
+      if (direction === "left") {
+        setActionMessage({
+          title: "No worries, vibe check done ✨",
+          message: `${targetProfile.name} has been passed for now.`,
+          type: "pass",
+        });
+      }
+
+      if (direction === "up") {
+        setActionMessage({
+          title: "Super Like sent ⭐",
+          message: `You gave ${targetProfile.name} a little extra sparkle.`,
+          type: "superlike",
+        });
+      }
+
       let x = 0;
       let y = 0;
 
@@ -496,6 +683,10 @@ export default function DiscoverScreen() {
       );
     }
   };
+
+
+
+  
 
   /*
    * =====================================================
@@ -746,6 +937,8 @@ export default function DiscoverScreen() {
   }
 
   return (
+
+    
     <View
       style={[
         styles.container,
@@ -754,6 +947,47 @@ export default function DiscoverScreen() {
         },
       ]}
     >
+      {actionMessage && (
+        <View
+          style={[
+            styles.actionMessage,
+            actionMessage.type === "like" &&
+              styles.actionMessageLike,
+            actionMessage.type === "superlike" &&
+              styles.actionMessageSuper,
+            actionMessage.type === "pass" &&
+              styles.actionMessagePass,
+          ]}
+        >
+          <Text style={styles.actionMessageIcon}>
+            {actionMessage.type === "like"
+              ? "♥"
+              : actionMessage.type === "superlike"
+              ? "★"
+              : "♡"}
+          </Text>
+
+          <View style={styles.actionMessageContent}>
+            <Text style={styles.actionMessageTitle}>
+              {actionMessage.title}
+            </Text>
+
+            <Text style={styles.actionMessageText}>
+              {actionMessage.message}
+            </Text>
+          </View>
+
+          <Pressable
+            onPress={() => setActionMessage(null)}
+            hitSlop={10}
+          >
+            <Text style={styles.actionMessageClose}>
+              ×
+            </Text>
+          </Pressable>
+        </View>
+      )}
+
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
@@ -1291,16 +1525,16 @@ export default function DiscoverScreen() {
             ]}
             onPress={() =>
               openProfile(
-                mostCompatible[0].profile
+                mostCompatible[0]
               )
             }
           >
             <Image
               source={{
                 uri:
-                  mostCompatible[0].profile
+                  mostCompatible[0]
                     .primaryPhoto ||
-                  mostCompatible[0].profile.photos?.[0],
+                  mostCompatible[0].photos?.[0],
               }}
               style={styles.compatibilityImage}
             />
@@ -1317,11 +1551,11 @@ export default function DiscoverScreen() {
                         },
                       ]}
                     >
-                      {mostCompatible[0].profile.name},{" "}
-                      {mostCompatible[0].profile.age}
+                      {mostCompatible[0].name},{" "}
+                      {mostCompatible[0].age}
                     </Text>
 
-                    {mostCompatible[0].profile
+                    {mostCompatible[0]
                       .isVerified && (
                         <View
                           style={[
@@ -1352,7 +1586,7 @@ export default function DiscoverScreen() {
                     ]}
                   >
                     📍{" "}
-                    {mostCompatible[0].profile
+                    {mostCompatible[0]
                       .distance ||
                       "Distance unavailable"}
                   </Text>
@@ -1376,7 +1610,7 @@ export default function DiscoverScreen() {
                       },
                     ]}
                   >
-                    {mostCompatible[0].score}%
+                    {mostCompatible[0].compatibility}%
                   </Text>
 
                   <Text
@@ -1400,11 +1634,11 @@ export default function DiscoverScreen() {
                   },
                 ]}
               >
-                {mostCompatible[0].profile.bio}
+                {mostCompatible[0].bio}
               </Text>
 
               <View style={styles.tagRow}>
-                {mostCompatible[0].profile.interests
+                {mostCompatible[0].interests
                   .slice(0, 3)
                   .map((item) => (
                     <View
@@ -1435,145 +1669,76 @@ export default function DiscoverScreen() {
           </Pressable>
         )}
 
-        {/* =================================================
-            BECAUSE YOU LIKE TRAVEL
-        ================================================= */}
+       {/* =================================================
+    BECAUSE YOU LIKE
+================================================= */}
 
-        <View style={styles.sectionHeader}>
-          <View>
-            <Text
-              style={[
-                styles.sectionTitle,
-                {
-                  color: theme.text,
-                },
-              ]}
-            >
-              ✈️ Because You Like Travel
-            </Text>
+{becauseYouLikeInterest &&
+  becauseYouLikeProfiles.length > 0 && (
+    <>
+      <View style={styles.sectionHeader}>
+        <View style={{ flex: 1 }}>
+          <Text
+            style={[
+              styles.sectionTitle,
+              {
+                color: theme.text,
+              },
+            ]}
+          >
+            ✨ Because You Like{" "}
+            {becauseYouLikeInterest}
+          </Text>
 
-            <Text
-              style={[
-                styles.sectionSubtitle,
-                {
-                  color: theme.textMuted,
-                },
-              ]}
-            >
-              People with travel energy
-            </Text>
-          </View>
+          <Text
+            style={[
+              styles.sectionSubtitle,
+              {
+                color: theme.textMuted,
+              },
+            ]}
+          >
+            People who share your love for{" "}
+            {becauseYouLikeInterest.toLowerCase()}
+          </Text>
         </View>
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.horizontalList}
+        <Pressable
+          onPress={() =>
+            router.push("/because-you-like")
+          }
+          hitSlop={10}
         >
-          {(profiles.some((item) =>
-            item.interests.some(
-              (interest) =>
-                interest.toLowerCase() === "travel"
-            )
-          )
-            ? profiles.filter((item) =>
-              item.interests.some(
-                (interest) =>
-                  interest.toLowerCase() === "travel"
-              )
-            )
-            : profiles
-          )
-            .slice(0, 6)
-            .map((item) => (
-              <Pressable
-                key={`travel-${item.id}`}
-                style={[
-                  styles.horizontalProfileCard,
-                  {
-                    backgroundColor:
-                      theme.surface,
-                    borderColor: theme.border,
-                  },
-                ]}
-                onPress={() => openProfile(item)}
-              >
-                <Image
-                  source={{
-                    uri:
-                      item.primaryPhoto ||
-                      item.photos?.[0],
-                  }}
-                  style={styles.horizontalImage}
-                />
+          <Text
+            style={[
+              styles.seeAll,
+              {
+                color: theme.primary,
+              },
+            ]}
+          >
+            View All
+          </Text>
+        </Pressable>
+      </View>
 
-                <View
-                  style={styles.horizontalOverlay}
-                />
-
-                <View
-                  style={styles.horizontalInfo}
-                >
-                  <Text style={styles.horizontalName}>
-                    {item.name}, {item.age}
-                  </Text>
-
-                  <Text
-                    style={
-                      styles.horizontalDistance
-                    }
-                  >
-                    📍{" "}
-                    {item.distance ||
-                      "Distance unavailable"}
-                  </Text>
-                </View>
-              </Pressable>
-            ))}
-        </ScrollView>
-
-        {/* =================================================
-            NEW HERE
-        ================================================= */}
-
-        <View style={styles.sectionHeader}>
-          <View>
-            <Text
-              style={[
-                styles.sectionTitle,
-                {
-                  color: theme.text,
-                },
-              ]}
-            >
-              🆕 New Here
-            </Text>
-
-            <Text
-              style={[
-                styles.sectionSubtitle,
-                {
-                  color: theme.textMuted,
-                },
-              ]}
-            >
-              Fresh faces worth saying hi to
-            </Text>
-          </View>
-        </View>
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.horizontalList}
-        >
-          {newProfiles.map((item) => (
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={
+          styles.horizontalList
+        }
+      >
+        {becauseYouLikeProfiles
+          .slice(0, 6)
+          .map((item) => (
             <Pressable
-              key={`new-${item.id}`}
+              key={`because-${item.id}`}
               style={[
-                styles.newCard,
+                styles.horizontalProfileCard,
                 {
-                  backgroundColor: theme.surface,
+                  backgroundColor:
+                    theme.surface,
                   borderColor: theme.border,
                 },
               ]}
@@ -1585,28 +1750,26 @@ export default function DiscoverScreen() {
                     item.primaryPhoto ||
                     item.photos?.[0],
                 }}
-                style={styles.newImage}
+                style={styles.horizontalImage}
               />
 
-              <View style={styles.newContent}>
+              <View
+                style={styles.horizontalOverlay}
+              />
+
+              <View
+                style={styles.horizontalInfo}
+              >
                 <Text
-                  style={[
-                    styles.newName,
-                    {
-                      color: theme.text,
-                    },
-                  ]}
+                  style={styles.horizontalName}
                 >
                   {item.name}, {item.age}
                 </Text>
 
                 <Text
-                  style={[
-                    styles.newDistance,
-                    {
-                      color: theme.textMuted,
-                    },
-                  ]}
+                  style={
+                    styles.horizontalDistance
+                  }
                 >
                   📍{" "}
                   {item.distance ||
@@ -1615,7 +1778,123 @@ export default function DiscoverScreen() {
               </View>
             </Pressable>
           ))}
-        </ScrollView>
+      </ScrollView>
+    </>
+  )}
+
+       {/* =================================================
+    NEW HERE
+================================================= */}
+
+{newHereProfiles.length > 0 && (
+  <>
+    <View style={styles.sectionHeader}>
+      <View style={{ flex: 1 }}>
+        <Text
+          style={[
+            styles.sectionTitle,
+            {
+              color: theme.text,
+            },
+          ]}
+        >
+          🆕 New Here
+        </Text>
+
+        <Text
+          style={[
+            styles.sectionSubtitle,
+            {
+              color: theme.textMuted,
+            },
+          ]}
+        >
+          Fresh faces worth saying hi to
+        </Text>
+      </View>
+
+      <Pressable
+        onPress={() =>
+          router.push("/new-here")
+        }
+        hitSlop={10}
+      >
+        <Text
+          style={[
+            styles.seeAll,
+            {
+              color: theme.primary,
+            },
+          ]}
+        >
+          View All
+        </Text>
+      </Pressable>
+    </View>
+
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={
+        styles.horizontalList
+      }
+    >
+      {newHereProfiles
+        .slice(0, 6)
+        .map((item) => (
+          <Pressable
+            key={`new-${item.id}`}
+            style={[
+              styles.newCard,
+              {
+                backgroundColor:
+                  theme.surface,
+                borderColor: theme.border,
+              },
+            ]}
+            onPress={() =>
+              openProfile(item)
+            }
+          >
+            <Image
+              source={{
+                uri:
+                  item.primaryPhoto ||
+                  item.photos?.[0],
+              }}
+              style={styles.newImage}
+            />
+
+            <View style={styles.newContent}>
+              <Text
+                style={[
+                  styles.newName,
+                  {
+                    color: theme.text,
+                  },
+                ]}
+              >
+                {item.name}, {item.age}
+              </Text>
+
+              <Text
+                style={[
+                  styles.newDistance,
+                  {
+                    color: theme.textMuted,
+                  },
+                ]}
+              >
+                📍{" "}
+                {item.distance ||
+                  "Distance unavailable"}
+              </Text>
+            </View>
+          </Pressable>
+        ))}
+    </ScrollView>
+  </>
+)}
 
         {/* =================================================
             TRENDING NEAR YOU
@@ -2836,6 +3115,71 @@ const styles = StyleSheet.create({
 
   scrollContent: {
     paddingBottom: 25,
+  },
+
+  actionMessage: {
+    marginHorizontal: 16,
+    marginTop: 10,
+    marginBottom: 4,
+    paddingHorizontal: 15,
+    paddingVertical: 13,
+    borderRadius: 18,
+    borderWidth: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+
+  actionMessageLike: {
+    backgroundColor: "#FFF0F4",
+    borderColor: "#FFD4DE",
+  },
+
+  actionMessageSuper: {
+    backgroundColor: "#F3EEFF",
+    borderColor: "#D9CCFF",
+  },
+
+  actionMessagePass: {
+    backgroundColor: "#FFF7F8",
+    borderColor: "#FFE0E5",
+  },
+
+  actionMessageIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: "#FFFFFF",
+    fontSize: 21,
+    textAlign: "center",
+    lineHeight: 38,
+  },
+
+  actionMessageContent: {
+    flex: 1,
+    marginLeft: 11,
+  },
+
+  actionMessageTitle: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#17151C",
+  },
+
+  actionMessageText: {
+    marginTop: 3,
+    fontSize: 11,
+    lineHeight: 16,
+    color: "#716D78",
+  },
+
+  actionMessageClose: {
+    fontSize: 20,
+    color: "#716D78",
+    paddingLeft: 8,
   },
 
   centerState: {

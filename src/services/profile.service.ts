@@ -24,6 +24,69 @@ export type CompleteProfileRequest = {
   location?: ProfileLocation | null;
 };
 
+export type BecauseYouLikeProfile = {
+  id: string;
+  userId?: string;
+  name: string | null;
+  age: number;
+  gender?: string;
+  interestedIn?: string;
+  bio: string;
+  description?: string;
+  interests: string[];
+  photos: string[];
+  primaryPhoto?: string | null;
+  datingIntention: string;
+  prompts: {
+    question: string;
+    answer: string;
+  }[];
+  isVerified: boolean;
+  lastActiveAt?: string;
+  isDiscoverable?: boolean;
+  distance?: string | null;
+};
+
+export type NewHereProfile = {
+  id: string;
+  userId?: string;
+  name: string | null;
+  age: number;
+  gender?: string;
+  interestedIn?: string;
+  bio: string;
+  description?: string;
+  interests: string[];
+  photos: string[];
+  primaryPhoto?: string | null;
+  datingIntention: string;
+  prompts: {
+    question: string;
+    answer: string;
+  }[];
+  isVerified: boolean;
+  lastActiveAt?: string;
+  isDiscoverable?: boolean;
+  distance?: string | null;
+};
+
+export type NewHereResponse = {
+  success: boolean;
+  data: {
+    profiles: NewHereProfile[];
+    count: number;
+  };
+};
+
+export type BecauseYouLikeResponse = {
+  success: boolean;
+  data: {
+    interest: string | null;
+    profiles: BecauseYouLikeProfile[];
+    count: number;
+  };
+};
+
 export type UpdateProfileRequest = {
   name?: string;
   bio?: string;
@@ -263,3 +326,43 @@ export const getPublicProfile = async (
     }
   );
 };
+
+
+export const getBecauseYouLikeProfiles =
+  async (): Promise<BecauseYouLikeResponse> => {
+    const token = await getSavedToken();
+
+    if (!token) {
+      throw new Error(
+        "Please login again to view profiles based on your interests."
+      );
+    }
+
+    return apiRequest<BecauseYouLikeResponse>(
+      "/profile/because-you-like",
+      {
+        method: "GET",
+        token,
+      }
+    );
+  };
+
+
+ export const getNewHereProfiles =
+  async (): Promise<NewHereResponse> => {
+    const token = await getSavedToken();
+
+    if (!token) {
+      throw new Error(
+        "Please login again to view new profiles."
+      );
+    }
+
+    return apiRequest<NewHereResponse>(
+      "/profile/new-here",
+      {
+        method: "GET",
+        token,
+      }
+    );
+  };

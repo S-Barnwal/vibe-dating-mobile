@@ -17,28 +17,33 @@ export const apiRequest = async <T>(
     token,
   } = options;
 
-  const response = await fetch(
-    `${API_URL}${endpoint}`,
-    {
-      method,
+  const url = `${API_URL}${endpoint}`;
 
-      headers: {
-        "Content-Type": "application/json",
+  console.log("API REQUEST:", {
+    method,
+    url,
+    hasToken: !!token,
+  });
 
-        ...(token
-          ? {
-              Authorization: `Bearer ${token}`,
-            }
-          : {}),
-      },
+  const response = await fetch(url, {
+    method,
 
-      ...(body !== undefined
+    headers: {
+      "Content-Type": "application/json",
+
+      ...(token
         ? {
-            body: JSON.stringify(body),
+            Authorization: `Bearer ${token}`,
           }
         : {}),
-    }
-  );
+    },
+
+    ...(body !== undefined
+      ? {
+          body: JSON.stringify(body),
+        }
+      : {}),
+  });
 
   const contentType =
     response.headers.get("content-type") || "";
@@ -56,6 +61,13 @@ export const apiRequest = async <T>(
         text || "Server returned an invalid response",
     };
   }
+
+  console.log("API RESPONSE:", {
+    endpoint,
+    status: response.status,
+    ok: response.ok,
+    data,
+  });
 
   if (!response.ok) {
     throw new Error(

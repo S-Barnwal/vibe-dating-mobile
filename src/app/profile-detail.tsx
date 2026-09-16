@@ -79,6 +79,13 @@ export default function ProfileDetailScreen() {
   const [actionLoading, setActionLoading] =
     useState(false);
 
+  const [actionMessage, setActionMessage] =
+    useState<{
+      title: string;
+      message: string;
+      type: "like" | "pass" | "superlike";
+    } | null>(null);
+
   const [activePhotoIndex, setActivePhotoIndex] =
     useState(0);
 
@@ -139,9 +146,9 @@ export default function ProfileDetailScreen() {
     photos[0] ||
     null;
 
-  const handleBack = () => {
-    router.back();
-  };
+ const handleBack = () => {
+  router.replace("/discover");
+};
 
   const handlePreviousPhoto = () => {
     if (photos.length <= 1) {
@@ -167,68 +174,96 @@ export default function ProfileDetailScreen() {
     );
   };
 
-  const handleAction = async (
-    type: "like" | "pass" | "superlike"
-  ) => {
-    if (!profile || actionLoading) {
-      return;
+const handleAction = async (
+  type: "like" | "pass" | "superlike"
+) => {
+  Alert.alert(
+    "Button Working 💜",
+    `You pressed ${type}`
+  );
+
+  if (!profile || actionLoading) {
+    return;
+  }
+
+  const targetUserId = profile.user;
+
+  if (!targetUserId) {
+    Alert.alert(
+      "Oops 💜",
+      "We couldn't connect with this profile right now."
+    );
+    return;
+  }
+
+  setActionLoading(true);
+
+  // Show the sweet feedback immediately
+  if (type === "like") {
+    setActionMessage({
+      title: "A little heart sent 💜",
+      message: `You let ${profile.name} know you're interested.`,
+      type: "like",
+    });
+  }
+
+  if (type === "superlike") {
+    setActionMessage({
+      title: "Someone caught your eye ⭐",
+      message: `Your Super Like is on its way to ${profile.name}.`,
+      type: "superlike",
+    });
+  }
+
+  if (type === "pass") {
+    setActionMessage({
+      title: "No worries, lovely 💜",
+      message:
+        "Vibes are personal. We'll keep looking for someone who feels right.",
+      type: "pass",
+    });
+  }
+
+  try {
+    if (type === "like") {
+      await likeProfile(targetUserId);
     }
 
-    const targetUserId = profile.user;
-
-    if (!targetUserId) {
-      Alert.alert(
-        "Something went wrong",
-        "This profile cannot be interacted with right now."
-      );
-      return;
+    if (type === "pass") {
+      await passProfile(targetUserId);
     }
 
-    try {
-      setActionLoading(true);
+    if (type === "superlike") {
+      await superlikeProfile(targetUserId);
+    }
 
-      if (type === "like") {
-        await likeProfile(targetUserId);
+    // Pass: safely leave the profile after the message appears
+    if (type === "pass") {
+  setTimeout(() => {
+    router.replace("/discover");
+  }, 1200);
+}
+  } catch (error) {
+    console.error(
+      "Profile action error:",
+      error
+    );
 
-        Alert.alert(
-          "Liked 💜",
-          `You liked ${profile.name}.`
-        );
-      }
-
-      if (type === "pass") {
-        await passProfile(targetUserId);
-
-        Alert.alert(
-          "Passed",
-          `You passed ${profile.name}.`
-        );
-      }
-
-      if (type === "superlike") {
-        await superlikeProfile(targetUserId);
-
-        Alert.alert(
-          "Super Like ⭐",
-          `You super liked ${profile.name}.`
-        );
-      }
-    } catch (error) {
-      console.error(
-        "Profile action error:",
-        error
-      );
-
-      Alert.alert(
-        "Couldn't save action",
+    setActionMessage({
+      title: "Couldn't save that 💜",
+      message:
         error instanceof Error
           ? error.message
-          : "Please try again."
-      );
-    } finally {
-      setActionLoading(false);
-    }
-  };
+          : "Something went wrong. Please try again.",
+      type,
+    });
+  } finally {
+    setActionLoading(false);
+  }
+};
+
+
+
 
   if (loading) {
     return (
@@ -323,6 +358,8 @@ export default function ProfileDetailScreen() {
             </Text>
           </Pressable>
         </View>
+
+   
 
         {/* Photo */}
         <View style={styles.photoContainer}>
@@ -544,6 +581,50 @@ export default function ProfileDetailScreen() {
           </View>
         )}
 
+         {actionMessage && (
+          <View
+            style={[
+              styles.actionMessageCard,
+              actionMessage.type === "like" &&
+                styles.actionMessageLike,
+              actionMessage.type === "superlike" &&
+                styles.actionMessageSuperlike,
+              actionMessage.type === "pass" &&
+                styles.actionMessagePass,
+            ]}
+          >
+            <View style={styles.actionMessageIcon}>
+              <Text style={styles.actionMessageIconText}>
+                {actionMessage.type === "like"
+                  ? "♥"
+                  : actionMessage.type === "superlike"
+                  ? "★"
+                  : "♡"}
+              </Text>
+            </View>
+
+            <View style={styles.actionMessageContent}>
+              <Text style={styles.actionMessageTitle}>
+                {actionMessage.title}
+              </Text>
+
+              <Text style={styles.actionMessageText}>
+                {actionMessage.message}
+              </Text>
+            </View>
+
+            <Pressable
+              onPress={() => setActionMessage(null)}
+              style={styles.actionMessageClose}
+              hitSlop={8}
+            >
+              <Text style={styles.actionMessageCloseText}>
+                ×
+              </Text>
+            </Pressable>
+          </View>
+        )}
+
         {/* Bottom actions */}
         <View style={styles.actionsSection}>
           <Pressable
@@ -607,6 +688,9 @@ export default function ProfileDetailScreen() {
             </Text>
           </Pressable>
         </View>
+
+
+            
 
         {actionLoading && (
           <ActivityIndicator
@@ -676,6 +760,87 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "800",
     color: COLORS.charcoal,
+  },
+
+  actionMessageCard: {
+    marginHorizontal: 18,
+    marginTop: 8,
+    padding: 14,
+    borderRadius: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    shadowColor: "#17151C",
+    shadowOffset: {
+      width: 0,
+      height: 5,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
+  },
+
+  actionMessageLike: {
+    backgroundColor: "#F7F0FF",
+    borderColor: "#E4D7FF",
+  },
+
+  actionMessageSuperlike: {
+    backgroundColor: "#FFF5EE",
+    borderColor: "#FFE0CE",
+  },
+
+  actionMessagePass: {
+    backgroundColor: "#FFF7F8",
+    borderColor: "#FFDDE3",
+  },
+
+  actionMessageIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: COLORS.white,
+  },
+
+  actionMessageIconText: {
+    fontSize: 20,
+    fontWeight: "900",
+    color: COLORS.plum,
+  },
+
+  actionMessageContent: {
+    flex: 1,
+    marginLeft: 12,
+    paddingRight: 6,
+  },
+
+  actionMessageTitle: {
+    fontSize: 14,
+    fontWeight: "900",
+    color: COLORS.charcoal,
+    marginBottom: 3,
+  },
+
+  actionMessageText: {
+    fontSize: 12,
+    lineHeight: 17,
+    color: COLORS.muted,
+  },
+
+  actionMessageClose: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  actionMessageCloseText: {
+    fontSize: 20,
+    lineHeight: 22,
+    color: COLORS.muted,
   },
 
   moreText: {
@@ -990,7 +1155,7 @@ const styles = StyleSheet.create({
   },
 
   actionLoader: {
-    marginTop: 15,
+    marginTop: 12,
   },
 
   bottomSpace: {

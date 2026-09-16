@@ -1,13 +1,19 @@
+import { useCallback, useState } from "react";
 import {
+  ActivityIndicator,
   Image,
   Pressable,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import { useFocusEffect } from "expo-router";
 import { router } from "expo-router";
 
-import { useMatchesStore } from "../store/matchesStore";
+import {
+  getMatches,
+  MatchProfile,
+} from "../services/matches.service";
 import { useTheme } from "../hooks/use-theme";
 import { radius, spacing } from "../constants/spacing";
 import { typography } from "../constants/typography";
@@ -15,8 +21,37 @@ import { typography } from "../constants/typography";
 export default function MatchesScreen() {
   const { theme, isDark } = useTheme();
 
-  const matches = useMatchesStore(
-    (state) => state.matches
+  const [matches, setMatches] = useState<MatchProfile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const loadMatches = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const response = await getMatches();
+
+      if (response.success) {
+        setMatches(response.data.matches || []);
+      } else {
+        setMatches([]);
+      }
+    } catch (err: any) {
+      console.error("Load matches error:", err);
+
+      setError(
+        err?.message || "Unable to load your matches."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      loadMatches();
+    }, [])
   );
 
   return (
@@ -125,17 +160,110 @@ export default function MatchesScreen() {
         )}
       </View>
 
-      {/* ================= MATCHES ================= */}
+      {/* ================= LOADING ================= */}
 
-      {matches.length > 0 ? (
+      {loading ? (
+        <View style={styles.loadingState}>
+          <ActivityIndicator
+            size="large"
+            color={theme.primary}
+          />
+
+          <Text
+            style={[
+              styles.loadingText,
+              {
+                color: theme.textMuted,
+              },
+            ]}
+          >
+            Finding your matches...
+          </Text>
+        </View>
+      ) : error ? (
+        /* ================= ERROR ================= */
+
+        <View style={styles.emptyState}>
+          <View
+            style={[
+              styles.emptyIcon,
+              {
+                backgroundColor: isDark
+                  ? "rgba(154, 122, 255, 0.12)"
+                  : "rgba(109, 61, 245, 0.08)",
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.emptyHeart,
+                {
+                  color: theme.primary,
+                },
+              ]}
+            >
+              !
+            </Text>
+          </View>
+
+          <Text
+            style={[
+              styles.emptyTitle,
+              {
+                color: theme.text,
+              },
+            ]}
+          >
+            Couldn't load matches
+          </Text>
+
+          <Text
+            style={[
+              styles.emptyText,
+              {
+                color: theme.textMuted,
+              },
+            ]}
+          >
+            {error}
+          </Text>
+
+          <Pressable
+            onPress={loadMatches}
+            style={({ pressed }) => [
+              styles.discoverButton,
+              {
+                backgroundColor: theme.primary,
+                opacity: pressed ? 0.9 : 1,
+                transform: [
+                  {
+                    scale: pressed ? 0.98 : 1,
+                  },
+                ],
+              },
+            ]}
+          >
+            <Text style={styles.discoverButtonText}>
+              Try again
+            </Text>
+
+            <Text style={styles.discoverArrow}>
+              ↻
+            </Text>
+          </Pressable>
+        </View>
+      ) : matches.length > 0 ? (
+        /* ================= MATCHES ================= */
+
         <View style={styles.list}>
           {matches.map((person) => (
             <Pressable
-              key={person.name}
+              key={person.id}
               onPress={() =>
                 router.push({
                   pathname: "/chat",
                   params: {
+                    userId: person.userId,
                     name: person.name,
                   },
                 })
@@ -159,7 +287,10 @@ export default function MatchesScreen() {
               <View style={styles.avatarContainer}>
                 <Image
                   source={{
-                    uri: person.image,
+                    uri:
+                      person.primaryPhoto ||
+                      person.photos?.[0] ||
+                      "https://via.placeholder.com/150",
                   }}
                   style={styles.avatar}
                 />
@@ -180,6 +311,7 @@ export default function MatchesScreen() {
               <View style={styles.matchInfo}>
                 <View style={styles.nameRow}>
                   <Text
+                    numberOfLines={1}
                     style={[
                       styles.name,
                       {
@@ -187,24 +319,29 @@ export default function MatchesScreen() {
                       },
                     ]}
                   >
-                    {person.name}, {person.age}
+                    {person.name}
+                    {person.age !== null
+                      ? `, ${person.age}`
+                      : ""}
                   </Text>
 
-                  <View
-                    style={[
-                      styles.verified,
-                      {
-                        backgroundColor:
-                          theme.primary,
-                      },
-                    ]}
-                  >
-                    <Text
-                      style={styles.verifiedText}
+                  {person.isVerified && (
+                    <View
+                      style={[
+                        styles.verified,
+                        {
+                          backgroundColor:
+                            theme.primary,
+                        },
+                      ]}
                     >
-                      ✓
-                    </Text>
-                  </View>
+                      <Text
+                        style={styles.verifiedText}
+                      >
+                        ✓
+                      </Text>
+                    </View>
+                  )}
                 </View>
 
                 <Text
@@ -534,6 +671,20 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
 
+  /* ================= LOADING ================= */
+
+  loadingState: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingBottom: 70,
+  },
+
+  loadingText: {
+    marginTop: 12,
+    fontSize: 13,
+  },
+
   /* ================= MATCH LIST ================= */
 
   list: {
@@ -582,6 +733,7 @@ const styles = StyleSheet.create({
   },
 
   name: {
+    flexShrink: 1,
     fontSize: 16,
     fontWeight: "800",
   },
@@ -620,7 +772,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
-  /* ================= EMPTY STATE ================= */
+  /* ================= EMPTY / ERROR ================= */
 
   emptyState: {
     flex: 1,
@@ -646,6 +798,7 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 22,
     fontWeight: "800",
+    textAlign: "center",
   },
 
   emptyText: {

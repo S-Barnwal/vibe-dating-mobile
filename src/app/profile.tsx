@@ -677,8 +677,7 @@ export default function ProfileScreen() {
 
         {/* ================= ABOUT ================= */}
 
-        {description.trim()
-          .length > 0 && (
+       {description.trim().length > 0 && (
           <View
             style={styles.section}
           >

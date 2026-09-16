@@ -1,4 +1,6 @@
+import { useCallback, useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Image,
   Pressable,
   ScrollView,
@@ -9,179 +11,416 @@ import {
 import { router } from "expo-router";
 
 import { useTheme } from "../hooks/use-theme";
+import { radius } from "../constants/spacing";
+import { typography } from "../constants/typography";
 
-const compatibleProfiles = [
-  {
-    name: "Riya",
-    age: 24,
-    distance: "3 km away",
-    image:
-      "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=900",
-    match: 94,
-    reason:
-      "You both love travel, coffee and dogs.",
-    interests: ["Travel", "Coffee", "Dogs"],
-    intention: "Something serious",
-  },
-  {
-    name: "Ananya",
-    age: 23,
-    distance: "4 km away",
-    image:
-      "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=900",
-    match: 91,
-    reason:
-      "You both enjoy music, movies and good food.",
-    interests: ["Music", "Movies", "Food"],
-    intention: "Long-term relationship",
-  },
-  {
-    name: "Meera",
-    age: 25,
-    distance: "5 km away",
-    image:
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=900",
-    match: 89,
-    reason:
-      "Your travel, books and art interests line up.",
-    interests: ["Books", "Travel", "Art"],
-    intention: "Something serious",
-  },
-  {
-    name: "Ishita",
-    age: 24,
-    distance: "6 km away",
-    image:
-      "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=900",
-    match: 87,
-    reason:
-      "You both enjoy fitness, music and coffee.",
-    interests: ["Fitness", "Music", "Coffee"],
-    intention: "Long-term relationship",
-  },
-  {
-    name: "Sara",
-    age: 23,
-    distance: "7 km away",
-    image:
-      "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=900",
-    match: 85,
-    reason:
-      "You both love food, travel and movie nights.",
-    interests: ["Food", "Travel", "Movies"],
-    intention: "Something casual",
-  },
-  {
-    name: "Naina",
-    age: 26,
-    distance: "8 km away",
-    image:
-      "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=900",
-    match: 83,
-    reason:
-      "You have a lot in common around books and nature.",
-    interests: ["Yoga", "Books", "Nature"],
-    intention: "Something serious",
-  },
-];
+import {
+  getMostCompatibleProfiles,
+  type CompatibleProfile,
+} from "../services/compatibility.service";
 
 export default function MostCompatibleScreen() {
   const { theme, isDark } = useTheme();
 
-  const openProfile = (name: string) => {
+  const [profiles, setProfiles] = useState<
+    CompatibleProfile[]
+  >([]);
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  /*
+   * =====================================================
+   * LOAD COMPATIBLE PROFILES
+   * =====================================================
+   */
+
+  const loadCompatibleProfiles = useCallback(
+    async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const response =
+          await getMostCompatibleProfiles();
+
+        setProfiles(
+          response.data?.profiles || []
+        );
+      } catch (err) {
+        console.error(
+          "Most compatible screen error:",
+          err
+        );
+
+        setProfiles([]);
+
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Unable to load compatible profiles."
+        );
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    loadCompatibleProfiles();
+  }, [loadCompatibleProfiles]);
+
+  /*
+   * =====================================================
+   * OPEN PROFILE
+   * =====================================================
+   */
+
+  const openProfile = (
+    profile: CompatibleProfile
+  ) => {
     router.push({
       pathname: "/profile-detail",
       params: {
-        name,
+        id: profile.id,
+        name: profile.name,
       },
     });
   };
+
+  /*
+   * =====================================================
+   * LOADING
+   * =====================================================
+   */
+
+  if (loading) {
+    return (
+      <View
+        style={[
+          styles.centerState,
+          {
+            backgroundColor:
+              theme.background,
+          },
+        ]}
+      >
+        <View
+          style={[
+            styles.loadingCircle,
+            {
+              backgroundColor: isDark
+                ? "#211D29"
+                : "#F3EEFF",
+            },
+          ]}
+        >
+          <Text style={styles.loadingEmoji}>
+            💯
+          </Text>
+        </View>
+
+        <ActivityIndicator
+          size="small"
+          color={theme.primary}
+        />
+
+        <Text
+          style={[
+            styles.stateTitle,
+            {
+              color: theme.text,
+            },
+          ]}
+        >
+          Finding your strongest vibes...
+        </Text>
+
+        <Text
+          style={[
+            styles.stateText,
+            {
+              color: theme.textMuted,
+            },
+          ]}
+        >
+          We're looking at your preferences,
+          interests and connection signals.
+        </Text>
+      </View>
+    );
+  }
+
+  /*
+   * =====================================================
+   * ERROR
+   * =====================================================
+   */
+
+  if (error) {
+    return (
+      <View
+        style={[
+          styles.centerState,
+          {
+            backgroundColor:
+              theme.background,
+          },
+        ]}
+      >
+        <View
+          style={[
+            styles.loadingCircle,
+            {
+              backgroundColor: isDark
+                ? "#21161C"
+                : "#FFF0F4",
+            },
+          ]}
+        >
+          <Text style={styles.loadingEmoji}>
+            💔
+          </Text>
+        </View>
+
+        <Text
+          style={[
+            styles.stateTitle,
+            {
+              color: theme.text,
+            },
+          ]}
+        >
+          Couldn't load matches
+        </Text>
+
+        <Text
+          style={[
+            styles.stateText,
+            {
+              color: theme.textMuted,
+            },
+          ]}
+        >
+          {error}
+        </Text>
+
+        <Pressable
+          onPress={loadCompatibleProfiles}
+          style={[
+            styles.retryButton,
+            {
+              backgroundColor:
+                theme.primary,
+            },
+          ]}
+        >
+          <Text style={styles.retryText}>
+            Try Again
+          </Text>
+        </Pressable>
+      </View>
+    );
+  }
+
+  /*
+   * =====================================================
+   * EMPTY
+   * =====================================================
+   */
+
+  if (profiles.length === 0) {
+    return (
+      <View
+        style={[
+          styles.centerState,
+          {
+            backgroundColor:
+              theme.background,
+          },
+        ]}
+      >
+        <View
+          style={[
+            styles.loadingCircle,
+            {
+              backgroundColor: isDark
+                ? "#211D29"
+                : "#F3EEFF",
+            },
+          ]}
+        >
+          <Text style={styles.loadingEmoji}>
+            ✨
+          </Text>
+        </View>
+
+        <Text
+          style={[
+            styles.stateTitle,
+            {
+              color: theme.text,
+            },
+          ]}
+        >
+          No compatible profiles yet
+        </Text>
+
+        <Text
+          style={[
+            styles.stateText,
+            {
+              color: theme.textMuted,
+            },
+          ]}
+        >
+          Keep exploring. As more people join
+          Vibe, we'll find stronger connections
+          for you.
+        </Text>
+
+        <Pressable
+          onPress={() =>
+            router.replace("/discover")
+          }
+          style={[
+            styles.retryButton,
+            {
+              backgroundColor:
+                theme.primary,
+            },
+          ]}
+        >
+          <Text style={styles.retryText}>
+            Back to Discover
+          </Text>
+        </Pressable>
+      </View>
+    );
+  }
+
+  /*
+   * =====================================================
+   * MAIN SCREEN
+   * =====================================================
+   */
 
   return (
     <View
       style={[
         styles.container,
         {
-          backgroundColor: theme.background,
+          backgroundColor:
+            theme.background,
         },
       ]}
     >
-      {/* ================= HEADER ================= */}
-
-      <View
-        style={[
-          styles.header,
-          {
-            borderBottomColor: theme.border,
-          },
-        ]}
-      >
-        <Pressable
-          style={({ pressed }) => [
-            styles.backButton,
-            {
-              backgroundColor: theme.surface,
-              borderColor: theme.border,
-              opacity: pressed ? 0.7 : 1,
-            },
-          ]}
-          onPress={() => router.back()}
-        >
-          <Text
-            style={[
-              styles.backText,
-              {
-                color: theme.text,
-              },
-            ]}
-          >
-            ‹
-          </Text>
-        </Pressable>
-
-        <View style={styles.headerTitleBox}>
-          <Text
-            style={[
-              styles.headerTitle,
-              {
-                color: theme.text,
-              },
-            ]}
-          >
-            Most Compatible
-          </Text>
-
-          <Text
-            style={[
-              styles.headerSubtitle,
-              {
-                color: theme.textMuted,
-              },
-            ]}
-          >
-            People you're most likely to vibe with
-          </Text>
-        </View>
-
-        <View style={styles.headerSpacer} />
-      </View>
-
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={
+          styles.scrollContent
+        }
       >
-        {/* ================= INTRO ================= */}
+        {/* =================================================
+            HEADER
+        ================================================= */}
+
+        <View style={styles.header}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            onPress={() => {
+  if (router.canGoBack()) {
+    router.back();
+  } else {
+    router.replace("/discover");
+  }
+}}
+            style={[
+              styles.backButton,
+              {
+                backgroundColor:
+                  theme.surface,
+                borderColor:
+                  theme.border,
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.backIcon,
+                {
+                  color: theme.text,
+                },
+              ]}
+            >
+              ‹
+            </Text>
+          </Pressable>
+
+          <View style={styles.headerText}>
+            <Text
+              style={[
+                styles.headerTitle,
+                {
+                  color: theme.text,
+                },
+              ]}
+            >
+              Most Compatible
+            </Text>
+
+            <Text
+              style={[
+                styles.headerSubtitle,
+                {
+                  color:
+                    theme.textMuted,
+                },
+              ]}
+            >
+              Your strongest potential vibes
+            </Text>
+          </View>
+
+          <View
+            style={[
+              styles.headerBadge,
+              {
+                backgroundColor:
+                  isDark
+                    ? "rgba(109,61,245,0.18)"
+                    : "#F3EEFF",
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.headerBadgeText,
+                {
+                  color:
+                    theme.primary,
+                },
+              ]}
+            >
+              {profiles.length}
+            </Text>
+          </View>
+        </View>
+
+        {/* =================================================
+            INTRO CARD
+        ================================================= */}
 
         <View
           style={[
             styles.introCard,
             {
-              backgroundColor: isDark
-                ? "rgba(109,61,245,0.13)"
-                : "#F4F0FF",
-              borderColor: isDark
-                ? "rgba(154,122,255,0.25)"
-                : "#E6DEFF",
+              backgroundColor:
+                theme.surface,
+              borderColor:
+                theme.border,
             },
           ]}
         >
@@ -189,11 +428,16 @@ export default function MostCompatibleScreen() {
             style={[
               styles.introIcon,
               {
-                backgroundColor: theme.primary,
+                backgroundColor:
+                  isDark
+                    ? "rgba(255,107,138,0.14)"
+                    : "#FFF0F4",
               },
             ]}
           >
-            <Text style={styles.introIconText}>💯</Text>
+            <Text style={styles.introEmoji}>
+              💯
+            </Text>
           </View>
 
           <View style={styles.introContent}>
@@ -205,114 +449,161 @@ export default function MostCompatibleScreen() {
                 },
               ]}
             >
-              Your strongest matches
+              Built around your vibe
             </Text>
 
             <Text
               style={[
                 styles.introText,
                 {
-                  color: theme.textMuted,
+                  color:
+                    theme.textMuted,
                 },
               ]}
             >
-              We found people who closely match your
-              interests, preferences and vibe.
+              These profiles are matched using
+              shared interests, intentions,
+              preferences, distance and recent
+              activity.
             </Text>
           </View>
         </View>
 
-        {/* ================= COUNT ================= */}
+        {/* =================================================
+            PROFILE COUNT
+        ================================================= */}
 
-        <View style={styles.countRow}>
+        <View style={styles.resultsHeader}>
+          <View>
+            <Text
+              style={[
+                styles.resultsTitle,
+                {
+                  color: theme.text,
+                },
+              ]}
+            >
+              {profiles.length}{" "}
+              {profiles.length === 1
+                ? "person"
+                : "people"}{" "}
+              found
+            </Text>
+
+            <Text
+              style={[
+                styles.resultsSubtitle,
+                {
+                  color:
+                    theme.textMuted,
+                },
+              ]}
+            >
+              Sorted by compatibility
+            </Text>
+          </View>
+
           <Text
             style={[
-              styles.countTitle,
+              styles.resultsSpark,
               {
-                color: theme.text,
+                color: theme.coral,
               },
             ]}
           >
-            {compatibleProfiles.length} people match your vibe
-          </Text>
-
-          <Text
-            style={[
-              styles.countSubtitle,
-              {
-                color: theme.textMuted,
-              },
-            ]}
-          >
-            Highest compatibility first
+            ✨
           </Text>
         </View>
 
-        {/* ================= PROFILES ================= */}
+        {/* =================================================
+            ALL COMPATIBLE PROFILES
+        ================================================= */}
 
-        {compatibleProfiles.map((profile) => (
-          <View
-            key={profile.name}
-            style={[
-              styles.profileCard,
-              {
-                backgroundColor: theme.surface,
-                borderColor: theme.border,
-              },
-            ]}
-          >
-            {/* IMAGE */}
+        {profiles.map(
+          (profile, index) => {
+            const primaryImage =
+              profile.primaryPhoto ||
+              profile.photos?.[0];
 
-            <Pressable
-              onPress={() => openProfile(profile.name)}
-              style={styles.imageWrapper}
-            >
-              <Image
-                source={{
-                  uri: profile.image,
-                }}
-                style={styles.profileImage}
-              />
+            return (
+              <Pressable
+                key={profile.id}
+                onPress={() =>
+                  openProfile(profile)
+                }
+                style={({ pressed }) => [
+                  styles.profileCard,
+                  {
+                    backgroundColor:
+                      theme.surface,
+                    borderColor:
+                      theme.border,
+                    opacity: pressed
+                      ? 0.88
+                      : 1,
+                  },
+                ]}
+              >
+                {/* IMAGE */}
 
-              <View style={styles.imageOverlay} />
-
-              <View style={styles.compatibleBadge}>
-                <Text style={styles.compatibleBadgeText}>
-                  ✨ Great match
-                </Text>
-              </View>
-
-              <View style={styles.imageInfo}>
-                <Text style={styles.imageName}>
-                  {profile.name}, {profile.age}
-                </Text>
-
-                <Text style={styles.imageDistance}>
-                  📍 {profile.distance}
-                </Text>
-              </View>
-            </Pressable>
-
-            {/* CONTENT */}
-
-            <View style={styles.profileContent}>
-              <View style={styles.topRow}>
-                <View>
-                  <View style={styles.nameRow}>
-                    <Text
+                <View style={styles.imageWrapper}>
+                  {primaryImage ? (
+                    <Image
+                      source={{
+                        uri: primaryImage,
+                      }}
+                      style={
+                        styles.profileImage
+                      }
+                    />
+                  ) : (
+                    <View
                       style={[
-                        styles.name,
+                        styles.imageFallback,
                         {
-                          color: theme.text,
+                          backgroundColor:
+                            isDark
+                              ? "#211D29"
+                              : "#F3EEFF",
                         },
                       ]}
                     >
-                      {profile.name}, {profile.age}
-                    </Text>
+                      <Text
+                        style={
+                          styles.fallbackEmoji
+                        }
+                      >
+                        ✨
+                      </Text>
+                    </View>
+                  )}
 
+                  {/* RANK */}
+
+                  <View
+                    style={[
+                      styles.rankBadge,
+                      {
+                        backgroundColor:
+                          theme.primary,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={
+                        styles.rankText
+                      }
+                    >
+                      #{index + 1}
+                    </Text>
+                  </View>
+
+                  {/* VERIFIED */}
+
+                  {profile.isVerified && (
                     <View
                       style={[
-                        styles.verified,
+                        styles.verifiedBadge,
                         {
                           backgroundColor:
                             theme.primary,
@@ -320,201 +611,328 @@ export default function MostCompatibleScreen() {
                       ]}
                     >
                       <Text
-                        style={styles.verifiedText}
+                        style={
+                          styles.verifiedText
+                        }
                       >
                         ✓
                       </Text>
                     </View>
-                  </View>
-
-                  <Text
-                    style={[
-                      styles.distance,
-                      {
-                        color: theme.textMuted,
-                      },
-                    ]}
-                  >
-                    📍 {profile.distance}
-                  </Text>
+                  )}
                 </View>
+
+                {/* CONTENT */}
 
                 <View
-                  style={[
-                    styles.matchBadge,
-                    {
-                      backgroundColor: isDark
-                        ? "rgba(255,107,138,0.14)"
-                        : "#FFF0F4",
-                    },
-                  ]}
+                  style={
+                    styles.profileContent
+                  }
                 >
-                  <Text
-                    style={[
-                      styles.matchPercent,
-                      {
-                        color: theme.coral,
-                      },
-                    ]}
-                  >
-                    {profile.match}%
-                  </Text>
-
-                  <Text
-                    style={[
-                      styles.matchText,
-                      {
-                        color: theme.textMuted,
-                      },
-                    ]}
-                  >
-                    match
-                  </Text>
-                </View>
-              </View>
-
-              {/* WHY MATCH */}
-
-              <View
-                style={[
-                  styles.reasonBox,
-                  {
-                    backgroundColor: theme.background,
-                    borderColor: theme.border,
-                  },
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.reasonLabel,
-                    {
-                      color: theme.primary,
-                    },
-                  ]}
-                >
-                  WHY YOU MATCH
-                </Text>
-
-                <Text
-                  style={[
-                    styles.reasonText,
-                    {
-                      color: theme.text,
-                    },
-                  ]}
-                >
-                  {profile.reason}
-                </Text>
-              </View>
-
-              {/* INTERESTS */}
-
-              <View style={styles.tagRow}>
-                {profile.interests.map((interest) => (
                   <View
-                    key={interest}
-                    style={[
-                      styles.tag,
-                      {
-                        backgroundColor:
-                          theme.background,
-                        borderColor: theme.border,
-                      },
-                    ]}
+                    style={
+                      styles.profileTopRow
+                    }
                   >
-                    <Text
+                    <View
+                      style={
+                        styles.profileNameBlock
+                      }
+                    >
+                      <Text
+                        numberOfLines={1}
+                        style={[
+                          styles.profileName,
+                          {
+                            color:
+                              theme.text,
+                          },
+                        ]}
+                      >
+                        {profile.name},{" "}
+                        {profile.age}
+                      </Text>
+
+                      <Text
+                        style={[
+                          styles.distance,
+                          {
+                            color:
+                              theme.textMuted,
+                          },
+                        ]}
+                      >
+                        📍{" "}
+                        {profile.distance ||
+                          "Distance unavailable"}
+                      </Text>
+                    </View>
+
+                    {/* COMPATIBILITY */}
+
+                    <View
                       style={[
-                        styles.tagText,
+                        styles.compatibilityBadge,
                         {
-                          color: theme.text,
+                          backgroundColor:
+                            isDark
+                              ? "rgba(255,107,138,0.14)"
+                              : "#FFF0F4",
                         },
                       ]}
                     >
-                      {interest}
+                      <Text
+                        style={[
+                          styles.compatibilityPercent,
+                          {
+                            color:
+                              theme.coral,
+                          },
+                        ]}
+                      >
+                        {profile.compatibility}%
+                      </Text>
+
+                      <Text
+                        style={[
+                          styles.compatibilityLabel,
+                          {
+                            color:
+                              theme.textMuted,
+                          },
+                        ]}
+                      >
+                        match
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* BIO */}
+
+                  {!!profile.bio && (
+                    <Text
+                      numberOfLines={2}
+                      style={[
+                        styles.bio,
+                        {
+                          color:
+                            theme.textMuted,
+                        },
+                      ]}
+                    >
+                      {profile.bio}
+                    </Text>
+                  )}
+
+                  {/* SHARED INTERESTS */}
+
+                  {profile.sharedInterests
+                    ?.length > 0 && (
+                    <View
+                      style={
+                        styles.sharedSection
+                      }
+                    >
+                      <View
+                        style={
+                          styles.sharedTitleRow
+                        }
+                      >
+                        <Text
+                          style={[
+                            styles.sharedIcon,
+                            {
+                              color:
+                                theme.coral,
+                            },
+                          ]}
+                        >
+                          ♥
+                        </Text>
+
+                        <Text
+                          style={[
+                            styles.sharedTitle,
+                            {
+                              color:
+                                theme.text,
+                            },
+                          ]}
+                        >
+                          You both like
+                        </Text>
+                      </View>
+
+                      <View
+                        style={
+                          styles.tagRow
+                        }
+                      >
+                        {profile.sharedInterests
+                          .slice(0, 4)
+                          .map(
+                            (
+                              interest
+                            ) => (
+                              <View
+                                key={
+                                  interest
+                                }
+                                style={[
+                                  styles.tag,
+                                  {
+                                    backgroundColor:
+                                      theme.background,
+                                    borderColor:
+                                      theme.border,
+                                  },
+                                ]}
+                              >
+                                <Text
+                                  style={[
+                                    styles.tagText,
+                                    {
+                                      color:
+                                        theme.text,
+                                    },
+                                  ]}
+                                >
+                                  {interest}
+                                </Text>
+                              </View>
+                            )
+                          )}
+                      </View>
+                    </View>
+                  )}
+
+                  {/* REASONS */}
+
+                  {profile.compatibilityReasons
+                    ?.length > 0 && (
+                    <View
+                      style={
+                        styles.reasonsBox
+                      }
+                    >
+                      {profile.compatibilityReasons
+                        .slice(0, 3)
+                        .map(
+                          (
+                            reason,
+                            reasonIndex
+                          ) => (
+                            <View
+                              key={`${profile.id}-reason-${reasonIndex}`}
+                              style={
+                                styles.reasonRow
+                              }
+                            >
+                              <View
+                                style={[
+                                  styles.reasonDot,
+                                  {
+                                    backgroundColor:
+                                      theme.success,
+                                  },
+                                ]}
+                              />
+
+                              <Text
+                                style={[
+                                  styles.reasonText,
+                                  {
+                                    color:
+                                      theme.textMuted,
+                                  },
+                                ]}
+                              >
+                                {reason}
+                              </Text>
+                            </View>
+                          )
+                        )}
+                    </View>
+                  )}
+
+                  {/* VIEW PROFILE */}
+
+                  <View
+                    style={
+                      styles.viewProfileRow
+                    }
+                  >
+                    <Text
+                      style={[
+                        styles.viewProfileText,
+                        {
+                          color:
+                            theme.primary,
+                        },
+                      ]}
+                    >
+                      View profile
+                    </Text>
+
+                    <Text
+                      style={[
+                        styles.viewProfileArrow,
+                        {
+                          color:
+                            theme.primary,
+                        },
+                      ]}
+                    >
+                      →
                     </Text>
                   </View>
-                ))}
-              </View>
-
-              {/* INTENTION */}
-
-              <View style={styles.intentionRow}>
-                <Text style={styles.intentionIcon}>
-                  🎯
-                </Text>
-
-                <Text
-                  style={[
-                    styles.intentionText,
-                    {
-                      color: theme.textMuted,
-                    },
-                  ]}
-                >
-                  {profile.intention}
-                </Text>
-              </View>
-
-              {/* VIEW PROFILE */}
-
-              <Pressable
-                style={({ pressed }) => [
-                  styles.viewButton,
-                  {
-                    backgroundColor: theme.primary,
-                    opacity: pressed ? 0.85 : 1,
-                  },
-                ]}
-                onPress={() =>
-                  openProfile(profile.name)
-                }
-              >
-                <Text style={styles.viewButtonText}>
-                  View Profile
-                </Text>
-
-                <Text style={styles.viewButtonArrow}>
-                  →
-                </Text>
+                </View>
               </Pressable>
-            </View>
-          </View>
-        ))}
+            );
+          }
+        )}
 
-        {/* ================= END ================= */}
+        {/* =================================================
+            BOTTOM MESSAGE
+        ================================================= */}
 
         <View
           style={[
-            styles.endCard,
+            styles.bottomCard,
             {
-              backgroundColor: theme.surface,
-              borderColor: theme.border,
+              backgroundColor:
+                theme.surface,
+              borderColor:
+                theme.border,
             },
           ]}
         >
-          <Text style={styles.endEmoji}>💕</Text>
+          <Text style={styles.bottomEmoji}>
+            💜
+          </Text>
 
           <Text
             style={[
-              styles.endTitle,
+              styles.bottomTitle,
               {
                 color: theme.text,
               },
             ]}
           >
-            That's all your strongest matches
+            Your vibe is unique
           </Text>
 
           <Text
             style={[
-              styles.endText,
+              styles.bottomText,
               {
-                color: theme.textMuted,
+                color:
+                  theme.textMuted,
               },
             ]}
           >
-            Keep discovering to find more people
-            you might connect with.
+            Compatibility is a starting point,
+            not the whole story. Say hi and see
+            where the vibe goes.
           </Text>
         </View>
 
@@ -524,62 +942,123 @@ export default function MostCompatibleScreen() {
   );
 }
 
+/* =====================================================
+   STYLES
+===================================================== */
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingTop: 55,
+    paddingHorizontal: 18,
+  },
+
+  scrollContent: {
+    paddingBottom: 30,
+  },
+
+  centerState: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 32,
+  },
+
+  loadingCircle: {
+    width: 78,
+    height: 78,
+    borderRadius: 39,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 18,
+  },
+
+  loadingEmoji: {
+    fontSize: 31,
+  },
+
+  stateTitle: {
+    marginTop: 8,
+    ...typography.h3,
+    textAlign: "center",
+  },
+
+  stateText: {
+    marginTop: 8,
+    ...typography.body,
+    textAlign: "center",
+    lineHeight: 20,
+    maxWidth: 310,
+  },
+
+  retryButton: {
+    marginTop: 20,
+    minHeight: 48,
+    paddingHorizontal: 25,
+    borderRadius: radius.lg,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  retryText: {
+    color: "#FFFFFF",
+    ...typography.smallButton,
   },
 
   header: {
-    height: 94,
-    paddingHorizontal: 18,
-    paddingTop: 45,
+    minHeight: 56,
     flexDirection: "row",
     alignItems: "center",
-    borderBottomWidth: 1,
+    marginBottom: 20,
   },
 
   backButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 44,
+    height: 44,
+    borderRadius: 15,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
   },
 
-  backText: {
-    fontSize: 32,
-    lineHeight: 36,
-    marginTop: -2,
+  backIcon: {
+    fontSize: 31,
+    lineHeight: 33,
+    fontWeight: "300",
+    marginTop: -3,
   },
 
-  headerTitleBox: {
+  headerText: {
     flex: 1,
-    alignItems: "center",
+    marginLeft: 12,
   },
 
   headerTitle: {
-    fontSize: 18,
-    fontWeight: "900",
+    fontSize: 21,
+    fontWeight: "850",
   },
 
   headerSubtitle: {
-    fontSize: 9,
     marginTop: 3,
+    fontSize: 11,
   },
 
-  headerSpacer: {
-    width: 42,
+  headerBadge: {
+    minWidth: 38,
+    height: 38,
+    paddingHorizontal: 9,
+    borderRadius: 13,
+    alignItems: "center",
+    justifyContent: "center",
   },
 
-  content: {
-    paddingHorizontal: 18,
-    paddingTop: 18,
-    paddingBottom: 30,
+  headerBadgeText: {
+    fontSize: 14,
+    fontWeight: "900",
   },
 
   introCard: {
-    borderRadius: 20,
+    borderRadius: 22,
     borderWidth: 1,
     padding: 14,
     flexDirection: "row",
@@ -587,57 +1066,64 @@ const styles = StyleSheet.create({
   },
 
   introIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
+    width: 50,
+    height: 50,
+    borderRadius: 17,
     alignItems: "center",
     justifyContent: "center",
   },
 
-  introIconText: {
-    fontSize: 22,
+  introEmoji: {
+    fontSize: 25,
   },
 
   introContent: {
     flex: 1,
-    marginLeft: 11,
+    marginLeft: 12,
   },
 
   introTitle: {
     fontSize: 14,
-    fontWeight: "900",
+    fontWeight: "850",
   },
 
   introText: {
-    fontSize: 10,
-    lineHeight: 15,
-    marginTop: 3,
+    marginTop: 5,
+    fontSize: 11,
+    lineHeight: 17,
   },
 
-  countRow: {
-    marginTop: 23,
+  resultsHeader: {
+    marginTop: 24,
     marginBottom: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
 
-  countTitle: {
+  resultsTitle: {
     fontSize: 16,
-    fontWeight: "900",
+    fontWeight: "850",
   },
 
-  countSubtitle: {
-    fontSize: 9,
+  resultsSubtitle: {
     marginTop: 3,
+    fontSize: 10,
+  },
+
+  resultsSpark: {
+    fontSize: 22,
   },
 
   profileCard: {
-    borderRadius: 23,
+    borderRadius: 22,
     borderWidth: 1,
     overflow: "hidden",
-    marginBottom: 15,
+    marginBottom: 13,
   },
 
   imageWrapper: {
-    height: 270,
+    height: 245,
     position: "relative",
   },
 
@@ -647,209 +1133,207 @@ const styles = StyleSheet.create({
     resizeMode: "cover",
   },
 
-  imageOverlay: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: 120,
-    backgroundColor: "rgba(0,0,0,0.52)",
+  imageFallback: {
+    width: "100%",
+    height: "100%",
+    alignItems: "center",
+    justifyContent: "center",
   },
 
-  compatibleBadge: {
+  fallbackEmoji: {
+    fontSize: 38,
+  },
+
+  rankBadge: {
     position: "absolute",
-    top: 13,
     left: 13,
+    top: 13,
     paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-    backgroundColor: "rgba(0,0,0,0.48)",
+    paddingVertical: 7,
+    borderRadius: 999,
   },
 
-  compatibleBadgeText: {
-    color: "#FFFFFF",
-    fontSize: 9,
-    fontWeight: "800",
-  },
-
-  imageInfo: {
-    position: "absolute",
-    left: 15,
-    bottom: 14,
-  },
-
-  imageName: {
-    color: "#FFFFFF",
-    fontSize: 22,
-    fontWeight: "900",
-  },
-
-  imageDistance: {
+  rankText: {
     color: "#FFFFFF",
     fontSize: 10,
-    marginTop: 4,
-  },
-
-  profileContent: {
-    padding: 14,
-  },
-
-  topRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-
-  nameRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  name: {
-    fontSize: 17,
     fontWeight: "900",
   },
 
-  verified: {
-    width: 17,
-    height: 17,
-    borderRadius: 9,
-    marginLeft: 5,
+  verifiedBadge: {
+    position: "absolute",
+    right: 13,
+    top: 13,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
     alignItems: "center",
     justifyContent: "center",
   },
 
   verifiedText: {
     color: "#FFFFFF",
-    fontSize: 9,
+    fontSize: 12,
     fontWeight: "900",
   },
 
-  distance: {
-    fontSize: 9,
-    marginTop: 4,
+  profileContent: {
+    padding: 14,
   },
 
-  matchBadge: {
-    minWidth: 54,
-    borderRadius: 12,
+  profileTopRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
+
+  profileNameBlock: {
+    flex: 1,
+    paddingRight: 10,
+  },
+
+  profileName: {
+    fontSize: 18,
+    fontWeight: "850",
+  },
+
+  distance: {
+    marginTop: 4,
+    fontSize: 10,
+  },
+
+  compatibilityBadge: {
+    minWidth: 57,
+    paddingHorizontal: 8,
     paddingVertical: 6,
+    borderRadius: 12,
     alignItems: "center",
   },
 
-  matchPercent: {
+  compatibilityPercent: {
     fontSize: 15,
     fontWeight: "900",
   },
 
-  matchText: {
-    fontSize: 7,
+  compatibilityLabel: {
     marginTop: 1,
+    fontSize: 8,
   },
 
-  reasonBox: {
-    marginTop: 13,
-    borderRadius: 14,
-    borderWidth: 1,
-    padding: 11,
+  bio: {
+    marginTop: 11,
+    fontSize: 12,
+    lineHeight: 18,
   },
 
-  reasonLabel: {
-    fontSize: 7,
-    fontWeight: "900",
-    letterSpacing: 1,
+  sharedSection: {
+    marginTop: 12,
   },
 
-  reasonText: {
+  sharedTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  sharedIcon: {
+    fontSize: 13,
+    marginRight: 6,
+  },
+
+  sharedTitle: {
     fontSize: 11,
-    lineHeight: 16,
-    marginTop: 5,
-    fontWeight: "600",
+    fontWeight: "800",
   },
 
   tagRow: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 6,
-    marginTop: 11,
+    marginTop: 7,
   },
 
   tag: {
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    borderRadius: 9,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderRadius: 999,
     borderWidth: 1,
   },
 
   tagText: {
-    fontSize: 9,
-    fontWeight: "600",
+    fontSize: 10,
+    fontWeight: "700",
   },
 
-  intentionRow: {
+  reasonsBox: {
+    marginTop: 12,
+    gap: 6,
+  },
+
+  reasonRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 11,
   },
 
-  intentionIcon: {
-    fontSize: 13,
-    marginRight: 5,
+  reasonDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 8,
   },
 
-  intentionText: {
-    fontSize: 9,
+  reasonText: {
+    flex: 1,
+    fontSize: 10,
+    lineHeight: 15,
   },
 
-  viewButton: {
-    height: 40,
-    borderRadius: 12,
+  viewProfileRow: {
     marginTop: 13,
-    alignItems: "center",
-    justifyContent: "center",
+    paddingTop: 11,
+    borderTopWidth: 1,
+    borderTopColor: "#EDE9F0",
     flexDirection: "row",
-  },
-
-  viewButtonText: {
-    color: "#FFFFFF",
-    fontSize: 11,
-    fontWeight: "800",
-  },
-
-  viewButtonArrow: {
-    color: "#FFFFFF",
-    fontSize: 14,
-    marginLeft: 6,
-  },
-
-  endCard: {
-    borderRadius: 21,
-    borderWidth: 1,
-    paddingHorizontal: 22,
-    paddingVertical: 25,
     alignItems: "center",
-    marginTop: 5,
   },
 
-  endEmoji: {
+  viewProfileText: {
+    fontSize: 12,
+    fontWeight: "850",
+  },
+
+  viewProfileArrow: {
+    marginLeft: 5,
+    fontSize: 17,
+    fontWeight: "700",
+  },
+
+  bottomCard: {
+    marginTop: 10,
+    borderRadius: 22,
+    borderWidth: 1,
+    padding: 22,
+    alignItems: "center",
+  },
+
+  bottomEmoji: {
     fontSize: 27,
   },
 
-  endTitle: {
-    fontSize: 15,
-    fontWeight: "900",
+  bottomTitle: {
+    marginTop: 9,
+    fontSize: 16,
+    fontWeight: "850",
     textAlign: "center",
-    marginTop: 10,
   },
 
-  endText: {
-    fontSize: 10,
-    lineHeight: 16,
+  bottomText: {
+    marginTop: 6,
+    fontSize: 11,
+    lineHeight: 17,
     textAlign: "center",
-    marginTop: 5,
+    maxWidth: 290,
   },
 
   bottomSpace: {
-    height: 15,
+    height: 25,
   },
 });
