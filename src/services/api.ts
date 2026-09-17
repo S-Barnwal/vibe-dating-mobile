@@ -1,5 +1,5 @@
 const API_URL =
-  "https://vibe-dating-server.onrender.com/api";
+  "http://192.168.29.162:5000/api";
 
 type ApiOptions = {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";

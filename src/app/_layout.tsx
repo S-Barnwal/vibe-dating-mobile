@@ -2,9 +2,12 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { View, ActivityIndicator } from "react-native";
+import IncomingCallHandler from "../components/calls/IncomingCallHandler";
 
 import { useTheme } from "../hooks/use-theme";
 import { useThemeStore } from "../store/themeStore";
+import { connectSocket } from "../services/socket.service";
+import { getSavedUser } from "../services/auth.service";
 
 export default function RootLayout() {
   const { theme, isDark, isLoaded } = useTheme();
@@ -16,6 +19,21 @@ export default function RootLayout() {
   useEffect(() => {
     loadMode();
   }, [loadMode]);
+
+  // Initialize Socket.IO for already logged-in users
+  useEffect(() => {
+    const initializeSocket = async () => {
+      const user = await getSavedUser();
+
+      if (!user?.id) {
+        return;
+      }
+
+      await connectSocket();
+    };
+
+    initializeSocket();
+  }, []);
 
   // Theme load hone tak screen render mat karo
   if (!isLoaded) {
@@ -81,6 +99,8 @@ export default function RootLayout() {
         <Stack.Screen name="profile-preview" />
         <Stack.Screen name="premium" />
       </Stack>
+
+      <IncomingCallHandler />
     </>
   );
 }

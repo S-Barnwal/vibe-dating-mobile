@@ -15,6 +15,7 @@ import { router } from "expo-router";
 import { useTheme } from "../hooks/use-theme";
 import { spacing, radius } from "../constants/spacing";
 import { typography } from "../constants/typography";
+import { connectSocket } from "../services/socket.service";
 
 import {
   login,
@@ -73,6 +74,8 @@ export default function LoginScreen() {
         token,
         user: loggedInUser,
       });
+
+      await connectSocket();
 
       // =====================================================
       // NAVIGATION
